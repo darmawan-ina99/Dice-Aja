@@ -43,17 +43,16 @@
     display:flex; flex-wrap:wrap; justify-content:center; gap:14px;
     padding:18px 10px; min-height:150px; align-content:center;
   }
-  .dadu {
-    width:72px; height:72px; perspective:600px; position:relative;
-  }
+  .dadu { width:72px; height:72px; position:relative; }
   .dadu .kubus {
-    width:100%; height:100%; position:relative; transform-style:preserve-3d;
-    transition:transform .1s linear;
+    position:absolute; top:0; left:0; width:100%; height:100%;
   }
   .muka {
-    width:72px; height:72px; border-radius:12px;
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    border-radius:12px; overflow:hidden;
     box-shadow: inset 0 -4px 8px rgba(0,0,0,.15), 0 4px 10px rgba(0,0,0,.45);
-    overflow:hidden;
+    will-change:transform;
+    -webkit-backface-visibility:hidden; backface-visibility:hidden;
   }
   .muka.angka {
     background:linear-gradient(145deg,#ffffff,#dfe6e9);
@@ -72,16 +71,6 @@
   .muka.hewan .nama { font-size:10px; font-weight:800; letter-spacing:.5px; margin-top:3px; }
   .muka.hewan.merah .nama { color:#fff; }
   .muka.hewan.putih .nama { color:#333; }
-  .dadu.rolling .kubus { animation:guncang .12s linear infinite; }
-  @keyframes guncang {
-    0%{transform:rotateZ(0) translateY(0);}
-    25%{transform:rotateZ(-8deg) translateY(-4px);}
-    50%{transform:rotateZ(0) translateY(0);}
-    75%{transform:rotateZ(8deg) translateY(-4px);}
-    100%{transform:rotateZ(0) translateY(0);}
-  }
-  .dadu.stop { animation:tempat .35s ease; }
-  @keyframes tempat { 0%{transform:scale(1);} 40%{transform:scale(1.12);} 100%{transform:scale(1);} }
 
   .kontrol {
     width:100%; max-width:520px; background:rgba(0,0,0,.3);
@@ -129,7 +118,7 @@
   footer { margin-top:auto; padding:10px; font-size:.65em; opacity:.45; text-align:center; }
 
   @media (max-width:400px){
-    .dadu, .muka { width:56px; height:56px; }
+    .dadu { width:56px; height:56px; }
     .muka.angka { padding:7px; } .muka.angka .p { width:10px; height:10px; }
     .muka.hewan .ikon { font-size:26px; } .muka.hewan .nama { font-size:8px; }
     #btn-roll { padding:13px 40px; }
@@ -142,7 +131,7 @@
 
 <header>
   <h1><span id="logo">🎲 DADU AJA</span><button class="eye-btn" id="eye" title="Mode Prediksi">👁</button></h1>
-  <div class="sub">Dadu angka + dadu hewan (gajah, ayam, naga) · durasi &amp; prediksi bisa diatur</div>
+  <div class="sub">Dadu angka + dadu hewan (gajah, ayam, naga) · gerakan ala The Dice asli</div>
 </header>
 
 <div id="prediksi">
@@ -180,6 +169,31 @@
 
 <script>
 (function(){
+  // ============================================================
+  //  ROLL ENGINE v1.3 — port setia gerakan The Dice v6.3
+  //  (referensi: roll.js TheDice_AIDE_v6.3, hasil dekompilasi asli)
+  //
+  //   1. KONTER GLOBAL: semua dadu berganti wajah SEREMPAK
+  //      mengikuti satu konter bersama (1..6, dadu hewan 0..5).
+  //   2. HITUNG MUNDUR MINIMUM: semua dadu wajib berputar minimal
+  //      beberapa detik (asli: postDelayed 3000L).
+  //   3. JENDELA BERHENTI dibuka di wajah 2 pertama setelah mundur
+  //      selesai -> urutan pendaratan tetap 2,3,4,5,6,1;
+  //      kembar berhenti serempak di tick yang sama.
+  //   4. BERHENTI DI WAJAH HASIL: dadu diam tepat saat wajah yang
+  //      sedang berputar = hasilnya (mendarat alami tanpa snap).
+  //   5. ANIMASI WAJAH (port show_right.xml + hide_left.xml):
+  //      wajah baru tumbuh dari sliver tipis di tepi KANAN
+  //      (scale 0->1, pivot 100% 50%), wajah lama menyusut jadi
+  //      sliver keluar ke KIRI (scale 1->0, pivot 0% 50%),
+  //      interpolator AccelerateDecelerate, akselerasi GPU.
+  //   6. PEMBUKA TANPA JEDA: hasil lemparan sebelumnya di-hard-cut
+  //      jadi wajah 6 lalu pada tick pertama langsung slide 6->1,
+  //      satu gerakan menyambung. Kecuali bila dadu memang sedang
+  //      diam di wajah 6 (roll pertama).
+  //   7. Dadu hewan: ikut siklus serempak (indeks 0..5), berhenti
+  //      paling akhir tepat di wajah hasilnya + bunyi gong.
+  // ============================================================
   var PIP = {
     1:[5],
     2:[1,9],
@@ -189,14 +203,18 @@
     6:[1,3,4,6,7,9]
   };
   var HEWAN = [
-    { ikon:'🐘', nama:'Gajah Merah',  singkat:'Gajah-M',  warna:'merah' },
-    { ikon:'🐘', nama:'Gajah Putih', singkat:'Gajah-P',  warna:'putih' },
-    { ikon:'🐔', nama:'Ayam Merah',  singkat:'Ayam-M',   warna:'merah' },
-    { ikon:'🐔', nama:'Ayam Putih',  singkat:'Ayam-P',   warna:'putih' },
-    { ikon:'🐉', nama:'Naga Merah',   singkat:'Naga-M',   warna:'merah' },
-    { ikon:'🐉', nama:'Naga Putih',   singkat:'Naga-P',   warna:'putih' }
+    { ikon:'🐘', nama:'Gajah Merah',  singkat:'Gajah-M' },
+    { ikon:'🐘', nama:'Gajah Putih', singkat:'Gajah-P' },
+    { ikon:'🐔', nama:'Ayam Merah',  singkat:'Ayam-M' },
+    { ikon:'🐔', nama:'Ayam Putih',  singkat:'Ayam-P' },
+    { ikon:'🐉', nama:'Naga Merah',   singkat:'Naga-M' },
+    { ikon:'🐉', nama:'Naga Putih',   singkat:'Naga-P' }
   ];
   var KODE = { 'Gajah-M':'GM','Gajah-P':'GP','Ayam-M':'AM','Ayam-P':'AP','Naga-M':'NM','Naga-P':'NP' };
+
+  // Tempo ganti wajah: 4 wajah/detik (permintaan user; asli 200ms)
+  var FRAME_MS = 250;
+  var EASE = 'cubic-bezier(0.42, 0, 0.58, 1)'; // ~= AccelerateDecelerateInterpolator
 
   var meja = document.getElementById('meja');
   var hasil = document.getElementById('hasil');
@@ -215,7 +233,7 @@
     prediksiOn: localStorage.getItem('da_eye')==='1',
     muted: localStorage.getItem('da_mute')==='1',
     rolling: false,
-    next: null   // { nums:[], hewan:int }
+    next: null
   };
 
   // ---------- suara ----------
@@ -224,7 +242,7 @@
     if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
     if(actx && actx.state==='suspended') actx.resume();
   }
-  function tick(){ blip(2200,0.02,0.04,'square'); }
+  function tickSfx(){ blip(2200,0.02,0.04,'square'); }
   function thud(){ blip(160,0.09,0.22,'sine'); }
   function gong(){ blip(520,0.35,0.18,'triangle'); }
   function blip(freq,dur,vol,type){
@@ -237,7 +255,7 @@
     o.start(); o.stop(actx.currentTime + dur);
   }
 
-  // ---------- render dadu ----------
+  // ---------- pembangun wajah ----------
   function makeMukaAngka(n){
     var m = document.createElement('div'); m.className='muka angka';
     for(var i=1;i<=9;i++){
@@ -250,35 +268,55 @@
   function makeMukaHewan(idx){
     var h = HEWAN[idx];
     var m = document.createElement('div');
-    m.className = 'muka hewan ' + h.warna;
+    m.className = 'muka hewan ' + (idx%2===0 ? 'merah' : 'putih');
     var i = document.createElement('div'); i.className='ikon'; i.textContent = h.ikon;
     var nm = document.createElement('div'); nm.className='nama'; nm.textContent = h.singkat;
     m.appendChild(i); m.appendChild(nm);
     return m;
   }
-  function makeDadu(){
-    var d = document.createElement('div'); d.className='dadu';
+  function makeDadu(tipe, cur){
+    var d = document.createElement('div'); d.className='dadu'; d.dataset.tipe=tipe; d.dataset.cur=cur;
     var k = document.createElement('div'); k.className='kubus';
+    var awal = tipe==='hewan' ? makeMukaHewan(cur) : makeMukaAngka(cur);
+    awal.classList.add('tampil');   // agar ikut menyusut keluar saat showFace pertama
+    k.appendChild(awal);
     d.appendChild(k);
     return d;
   }
   function renderMeja(){
     meja.innerHTML='';
     var i;
-    for(i=0;i<state.jumlah;i++){
-      var d = makeDadu(); d.dataset.tipe='angka';
-      d.querySelector('.kubus').appendChild(makeMukaAngka(6));
-      meja.appendChild(d);
-    }
-    var h = makeDadu(); h.dataset.tipe='hewan';
-    h.querySelector('.kubus').appendChild(makeMukaHewan(0));
-    meja.appendChild(h);
+    for(i=0;i<state.jumlah;i++) meja.appendChild(makeDadu('angka', 6));
+    meja.appendChild(makeDadu('hewan', 5));   // hewan "diam di 6" = Naga Putih
   }
-  function setMuka(d, val){
-    var k = d.querySelector('.kubus');
-    var baru = d.dataset.tipe==='hewan' ? makeMukaHewan(val) : makeMukaAngka(val);
-    var lama = k.querySelector('.muka');
-    if(lama) k.replaceChild(baru, lama); else k.appendChild(baru);
+
+  // ---------- ANIMASI WAJAH (port show_right / hide_left asli) ----------
+  function showFace(b, face){
+    var kubus = b.el.querySelector('.kubus');
+    var prev = kubus.querySelector('.muka.tampil');
+
+    // wajah baru: sliver tipis di tepi kanan -> tumbuh penuh (pivot 100% 50%)
+    var baru = b.hewan ? makeMukaHewan(face) : makeMukaAngka(face);
+    baru.classList.add('tampil');
+    baru.style.transformOrigin = '100% 50%';
+    baru.style.transform = 'scale(0, 0.8)';
+    baru.style.transition = 'none';
+    kubus.appendChild(baru);
+    void baru.offsetWidth;  // paksa reflow agar kondisi awal terpasang
+    baru.style.transition = 'transform ' + FRAME_MS + 'ms ' + EASE;
+    baru.style.transform = 'scale(1, 1)';
+
+    // wajah lama: menyusut jadi sliver keluar tepi kiri lalu dibuang (pivot 0% 50%)
+    if(prev){
+      prev.classList.remove('tampil');
+      prev.style.transformOrigin = '0% 50%';
+      prev.style.transition = 'transform ' + FRAME_MS + 'ms ' + EASE;
+      prev.style.transform = 'scale(0, 0.8)';
+      setTimeout(function(){
+        if(prev.parentNode) prev.parentNode.removeChild(prev);
+      }, FRAME_MS);
+    }
+    b.el.dataset.cur = face;
   }
 
   // ---------- prediksi ----------
@@ -302,7 +340,7 @@
     }
   }
 
-  // ---------- roll ----------
+  // ---------- ROLL (konter global serempak, asli Tick200mils) ----------
   function roll(){
     if(state.rolling) return;
     state.rolling = true;
@@ -310,7 +348,7 @@
     hasil.textContent = '';
     hewanHasil.textContent = '';
 
-    // hasil = yang sudah diprediksi (kalau mode aktif), dijamin sama
+    // Aturan 1: hasil ditetapkan SEBELUM animasi (dari mode prediksi / acak)
     var angka, hewanIdx;
     if(state.next && state.next.nums.length===state.jumlah){
       angka = state.next.nums.slice(); hewanIdx = state.next.hewan;
@@ -319,53 +357,73 @@
     }
 
     var dice = Array.prototype.slice.call(document.querySelectorAll('.dadu'));
-    var dur = state.durasi;
-
-    // Aturan pendaratan ala The Dice v6.3:
-    // berhenti mulai angka terkecil dengan urutan tetap 2 -> 3 -> 4 -> 5 -> 6 -> 1.
-    // Angka kembar mendarat serempak. Waktu: rank 0 mendarat di dur*0.875,
-    // tiap urutan berikut +dur*0.0625 (saat dur 4 dtk: 3,5 / 3,75 / 4,0 / 4,25 / 4,5 / 4,75).
-    var RANK = { 2:0, 3:1, 4:2, 5:3, 6:4, 1:5 };
-    var base = Math.round(dur*0.875);
-    var step = Math.max(100, Math.round(dur*0.0625));
-
-    dice.forEach(function(d){ d.classList.add('rolling'); });
-
-    // siklus selang-seling, tempo 4 wajah/detik, mendarat alami tanpa snap
-    var FLIP = 250;
-    dice.forEach(function(d,i){
-      d.dataset.cur = 1+Math.floor(Math.random()*6);
-      d.dataset.dir = (i%2===0) ? '1' : '-1';
+    var balls = dice.map(function(d,i){
+      return {
+        el: d,
+        hewan: d.dataset.tipe==='hewan',
+        value: d.dataset.tipe==='hewan' ? hewanIdx : angka[i],
+        cur: parseInt(d.dataset.cur,10),
+        stoped: false
+      };
     });
-    var flipTimer = setInterval(function(){
-      dice.forEach(function(d){
-        if(!d.classList.contains('rolling')) return;
-        var c = parseInt(d.dataset.cur,10);
-        var dir = parseInt(d.dataset.dir,10);
-        if(d.dataset.tipe==='hewan') setMuka(d, c%6);
-        else setMuka(d, c);
-        c = ((c-1+dir+6)%6)+1;
-        d.dataset.cur = c;
+
+    // hitung mundur minimum (asli: postDelayed 3000L); Cepat/Santai diskalakan
+    var MIN_SPIN_MS = state.durasi===2000 ? 1500 : (state.durasi===6500 ? 5000 : 3000);
+    var secCounter = 5;           // asli: secCounter = 5 saat dilempar
+    var minSpinDone = false;
+    var stopWindowOpen = false;
+    setTimeout(function(){ minSpinDone = true; }, MIN_SPIN_MS);
+
+    // PEMBUKA tanpa jeda: hard-cut hasil lama -> wajah 6, slide menyambung di tick 1.
+    // Pengecualian: bila dadu memang sedang diam di wajah 6, biarkan (roll pertama).
+    balls.forEach(function(b){
+      var diamDi6 = b.hewan ? (b.cur===5) : (b.cur===6);
+      if(!diamDi6) showFace(b, b.hewan ? 5 : 6);
+    });
+
+    function tick(){
+      secCounter += 1;
+      if(secCounter >= 6) secCounter = 0;   // konter global (asli)
+      var face = secCounter + 1;            // wajah 1..6 utk dadu angka
+
+      // jendela stop dibuka di wajah 2 pertama setelah mundur selesai
+      if(!stopWindowOpen && minSpinDone && face===2) stopWindowOpen = true;
+
+      var allNumStoped = balls.every(function(b){ return b.hewan || b.stoped; });
+      var anySpinning = false;
+
+      balls.forEach(function(b){
+        if(b.stoped) return;
+        if(!b.hewan){
+          if(stopWindowOpen && face===b.value){
+            showFace(b, face);        // wajah hasil meluncur masuk...
+            b.stoped = true;          // ...lalu dadu diam (alami, tanpa snap)
+            b.el.dataset.stoped = '1';
+            thud();
+          } else {
+            showFace(b, face);        // serempak mengikuti konter global
+            anySpinning = true;
+          }
+        } else {
+          if(allNumStoped && secCounter===b.value){
+            showFace(b, b.value);     // hewan mendarat di wajah hasilnya
+            b.stoped = true;
+            b.el.dataset.stoped = '1';
+            gong();
+          } else {
+            showFace(b, secCounter);  // siklus serempak indeks 0..5
+            anySpinning = true;
+          }
+        }
       });
-      tick();
-    }, FLIP);
+      tickSfx();
 
-    // jadwal pendaratan: per-NILAI (bukan per-posisi), dadu hewan selalu penutup
-    var lastStop = 0;
-    dice.forEach(function(d,i){
-      var t = (d.dataset.tipe==='hewan') ? (base + 6*step) : (base + RANK[angka[i]]*step);
-      if(t > lastStop) lastStop = t;
-      setTimeout(function(){
-        d.classList.remove('rolling');
-        d.classList.add('stop');
-        if(d.dataset.tipe==='hewan'){ setMuka(d, hewanIdx); gong(); }
-        else { setMuka(d, angka[i]); thud(); }
-        setTimeout(function(){ d.classList.remove('stop'); }, 400);
-      }, t);
-    });
+      if(anySpinning) setTimeout(tick, FRAME_MS);
+      else setTimeout(selesai, FRAME_MS);
+    }
+    setTimeout(tick, FRAME_MS);   // asli: postDelayed(tick, 200L)
 
-    setTimeout(function(){
-      clearInterval(flipTimer);
+    function selesai(){
       var tot = angka.reduce(function(a,b){return a+b;},0);
       var h = HEWAN[hewanIdx];
       hasil.textContent = state.jumlah>1
@@ -374,17 +432,15 @@
       hewanHasil.textContent = '🐾 ' + h.ikon + ' ' + h.nama;
 
       var r = document.createElement('span'); r.className='riw';
-      var txt = angka.join('-') + (state.jumlah>1 ? '('+tot+')' : '') + ' · ' + KODE[h.singkat];
-      r.textContent = txt;
+      r.textContent = angka.join('-') + (state.jumlah>1 ? '('+tot+')' : '') + ' · ' + KODE[h.singkat];
       riwayatEl.insertBefore(r, riwayatEl.firstChild);
       while(riwayatEl.children.length>6) riwayatEl.removeChild(riwayatEl.lastChild);
 
       genNext();
       refreshPrediction();
-
       state.rolling = false;
       btnRoll.disabled = false;
-    }, lastStop + 450);
+    }
   }
 
   // ---------- kontrol ----------
