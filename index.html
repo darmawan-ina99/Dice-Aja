@@ -3,196 +3,121 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Dadu Aja - Lempar Dadu</title>
+<title>Dadu Aja</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html, body { height:100%; }
   body {
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: Arial, sans-serif;
     background: radial-gradient(ellipse at center, #1d6b3f 0%, #0e4a29 60%, #07301b 100%);
     color:#fff; display:flex; flex-direction:column; align-items:center;
-    min-height:100vh; user-select:none; padding:12px; overflow-x:hidden;
+    min-height:100vh; user-select:none; padding:8px; overflow-x:hidden;
   }
-  header { text-align:center; padding:8px 16px 4px; }
-  h1 {
-    font-size:1.6em; letter-spacing:2px; font-weight:800;
-    text-shadow: 0 2px 4px rgba(0,0,0,.5); display:inline-flex; align-items:center; gap:8px;
-  }
-  .eye-btn {
-    background:none; border:none; font-size:1em; cursor:pointer; opacity:0;
-    transition:opacity .4s, transform .2s; filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));
-  }
-  .eye-btn.show { opacity:.85; }
-  .eye-btn.on { opacity:1; transform:scale(1.15); }
-  .sub { font-size:.72em; opacity:.6; margin-top:2px; }
 
   #prediksi {
-    margin:8px auto 0; max-width:340px; width:100%;
+    margin:6px auto 0; min-height:34px;
+    display:none; align-items:center; justify-content:center; gap:6px;
     background:rgba(0,0,0,.35); border:1px solid rgba(255,215,0,.35);
-    border-radius:14px; padding:10px 12px; text-align:center;
-    display:none; animation:fadein .4s;
+    border-radius:12px; padding:5px 12px;
   }
-  #prediksi.show { display:block; }
-  #prediksi .lbl { font-size:.72em; color:#ffd54f; letter-spacing:1px; text-transform:uppercase; }
-  #prediksi .nums { font-size:1.35em; font-weight:800; margin-top:4px; color:#ffe082; word-spacing:10px; }
-  #prediksi .tot { font-size:.8em; opacity:.75; margin-top:2px; }
-  @keyframes fadein { from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:none;} }
+  #prediksi.show { display:flex; }
 
+  /* dadu tersusun VERTIKAL seperti referensi */
   .meja {
-    margin:14px 0 10px; width:100%; max-width:560px;
-    display:flex; flex-wrap:wrap; justify-content:center; gap:14px;
-    padding:18px 10px; min-height:150px; align-content:center;
+    margin:8px 0; width:100%;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    padding:10px 0; min-height:80px;
   }
-  .dadu { width:72px; height:72px; position:relative; }
-  .dadu .kubus {
-    position:absolute; top:0; left:0; width:100%; height:100%;
-  }
+  .dadu { width:66px; height:66px; position:relative; }
+  .dadu .kubus { position:absolute; top:0; left:0; width:100%; height:100%; }
+
   .muka {
     position:absolute; top:0; left:0; width:100%; height:100%;
     border-radius:12px; overflow:hidden;
+    background:linear-gradient(145deg,#ffffff,#dfe6e9);
     box-shadow: inset 0 -4px 8px rgba(0,0,0,.15), 0 4px 10px rgba(0,0,0,.45);
     will-change:transform;
     -webkit-backface-visibility:hidden; backface-visibility:hidden;
   }
-  .muka.angka {
-    background:linear-gradient(145deg,#ffffff,#dfe6e9);
-    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr);
-    padding:9px;
-  }
-  .muka.angka .p { border-radius:50%; background:#1a1a1a; align-self:center; justify-self:center; width:13px; height:13px; box-shadow: inset 0 1px 2px rgba(255,255,255,.35), inset 0 -1px 2px rgba(0,0,0,.5); }
-  .muka.hewan {
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    border:3px solid rgba(0,0,0,.25);
-  }
-  .muka.hewan.merah { background:linear-gradient(145deg,#ef5350,#b71c1c); }
-  .muka.hewan.putih { background:linear-gradient(145deg,#ffffff,#e3f2fd); }
-  .muka.hewan .ikon { font-size:34px; line-height:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
-  .muka.hewan.putih .ikon { filter:drop-shadow(0 2px 2px rgba(0,0,0,.2)); }
-  .muka.hewan .nama { font-size:10px; font-weight:800; letter-spacing:.5px; margin-top:3px; }
-  .muka.hewan.merah .nama { color:#fff; }
-  .muka.hewan.putih .nama { color:#333; }
+  .muka.angka { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:8px; }
+  .muka.angka .p { border-radius:50%; background:#1a1a1a; align-self:center; justify-self:center; width:12px; height:12px; box-shadow: inset 0 1px 2px rgba(255,255,255,.35), inset 0 -1px 2px rgba(0,0,0,.5); }
+  .muka.hewan { display:flex; align-items:center; justify-content:center; }
+  .muka.hewan svg { width:72%; height:72%; }
 
-  .kontrol {
-    width:100%; max-width:520px; background:rgba(0,0,0,.3);
-    border-radius:16px; padding:12px 14px; display:flex; flex-wrap:wrap;
-    gap:10px 16px; align-items:center; justify-content:center;
+  /* mini dadu (ikon jumlah & prediksi) */
+  .mini { width:26px; height:26px; border-radius:6px; position:relative;
+    background:linear-gradient(145deg,#ffffff,#dfe6e9);
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,.15), 0 2px 5px rgba(0,0,0,.4);
+    flex:0 0 auto; }
+  .mini.angka { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:3px; }
+  .mini.angka .p { border-radius:50%; background:#1a1a1a; align-self:center; justify-self:center; width:4.5px; height:4.5px; }
+  .mini.hewan { display:flex; align-items:center; justify-content:center; }
+  .mini.hewan svg { width:82%; height:82%; }
+  .mini.sep { width:2px; height:22px; background:rgba(255,215,0,.4); border-radius:2px; flex:0 0 auto; }
+
+  .ikonbar {
+    margin-top:auto; display:flex; align-items:center; justify-content:center; gap:10px;
+    background:rgba(0,0,0,.3); border-radius:16px; padding:8px 12px;
   }
-  .grup { display:flex; align-items:center; gap:8px; }
-  .grup label { font-size:.78em; opacity:.8; letter-spacing:.5px; }
-  .stepper { display:flex; align-items:center; gap:6px; }
-  .stepper button, .dur-btn, #btn-roll, #btn-mute {
-    border:none; border-radius:10px; cursor:pointer; font-weight:700;
-    transition:transform .15s, background .2s;
+  .ikonbar button, #btn-roll, #btn-mute, #eye {
+    border:none; cursor:pointer; background:rgba(255,255,255,.16); color:#fff;
+    border-radius:10px; transition:transform .15s, background .2s;
+    display:flex; align-items:center; justify-content:center;
   }
-  .stepper button {
-    width:32px; height:32px; font-size:1.1em; background:rgba(255,255,255,.16); color:#fff;
-  }
-  .stepper button:active { transform:scale(.92); background:rgba(255,255,255,.3); }
-  .stepper .val { min-width:26px; text-align:center; font-size:1.05em; font-weight:800; }
-  .dur-wrap { display:flex; gap:6px; }
-  .dur-btn { padding:7px 12px; font-size:.78em; background:rgba(255,255,255,.14); color:#fff; }
-  .dur-btn.aktif { background:#ffd54f; color:#333; box-shadow:0 2px 6px rgba(0,0,0,.3); }
+  .ikonbar button { width:34px; height:34px; font-size:1em; }
+  .ikonbar button:active { transform:scale(.92); background:rgba(255,255,255,.3); }
+  .ikonbar .dur-btn.aktif { background:#ffd54f; }
 
   #btn-roll {
-    margin:14px 0 6px; padding:14px 52px; font-size:1.15em; letter-spacing:1px;
+    margin:12px 0 8px; width:72px; height:72px; font-size:2em;
     background:linear-gradient(180deg,#ffca28,#ffb300); color:#3e2723;
-    border-radius:40px; box-shadow:0 5px 14px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,255,255,.5);
+    border-radius:50%; box-shadow:0 5px 14px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,255,255,.5);
   }
   #btn-roll:active { transform:scale(.95); }
   #btn-roll:disabled { filter:grayscale(.6) brightness(.8); cursor:default; }
 
-  #hasil { min-height:34px; font-size:1.1em; font-weight:800; text-align:center; color:#ffe082; text-shadow:0 1px 3px rgba(0,0,0,.5); padding:0 8px; }
-  #hewanhasil { min-height:24px; font-size:.95em; font-weight:800; text-align:center; color:#ffab91; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+  #btn-mute { position:fixed; top:10px; right:10px; width:38px; height:38px; font-size:1em; background:rgba(0,0,0,.35); border-radius:50%; }
+  #eye { position:fixed; top:10px; left:10px; width:38px; height:38px; font-size:1em; background:rgba(0,0,0,.35); border-radius:50%; opacity:.55; }
+  #eye.on { opacity:1; background:#ffd54f; color:#333; }
 
-  #riwayat { margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; justify-content:center; min-height:22px; }
-  .riw {
-    font-size:.7em; background:rgba(255,255,255,.12); border-radius:8px;
-    padding:3px 8px; opacity:.85;
+  @media (max-height:720px){
+    .meja.padat .dadu { width:52px; height:52px; }
+    .meja.padat .muka.angka { padding:6px; } .meja.padat .muka.angka .p { width:9px; height:9px; }
+    .meja { gap:8px; }
   }
-
-  #btn-mute {
-    position:fixed; top:10px; right:10px; width:38px; height:38px; font-size:1em;
-    background:rgba(0,0,0,.35); color:#fff; border-radius:50%;
-  }
-
-  footer { margin-top:auto; padding:10px; font-size:.65em; opacity:.45; text-align:center; }
-
-  @media (max-width:400px){
-    .dadu { width:56px; height:56px; }
-    .muka.angka { padding:7px; } .muka.angka .p { width:10px; height:10px; }
-    .muka.hewan .ikon { font-size:26px; } .muka.hewan .nama { font-size:8px; }
-    #btn-roll { padding:13px 40px; }
+  @media (max-height:620px){
+    .dadu { width:52px; height:52px; }
+    .muka.angka { padding:6px; } .muka.angka .p { width:9px; height:9px; }
+    .meja { gap:7px; }
   }
 </style>
 </head>
 <body>
 
+<button id="eye" title="Prediksi">👁</button>
 <button id="btn-mute" title="Suara">🔊</button>
 
-<header>
-  <h1><span id="logo">🎲 DADU AJA</span><button class="eye-btn" id="eye" title="Mode Prediksi">👁</button></h1>
-  <div class="sub">Dadu angka + dadu hewan (gajah, ayam, naga) · gerakan ala The Dice asli</div>
-</header>
-
-<div id="prediksi">
-  <div class="lbl">✨ Lemparan berikutnya</div>
-  <div class="nums" id="pred-nums"></div>
-  <div class="tot" id="pred-tot"></div>
-</div>
+<div id="prediksi"></div>
 
 <div class="meja" id="meja"></div>
 
-<div id="hasil"></div>
-<div id="hewanhasil"></div>
-<div id="riwayat"></div>
-
-<div class="kontrol">
-  <div class="grup">
-    <label>Jumlah dadu angka</label>
-    <div class="stepper">
-      <button id="minus">−</button><span class="val" id="jml">2</span><button id="plus">+</button>
-    </div>
-  </div>
-  <div class="grup">
-    <label>Durasi</label>
-    <div class="dur-wrap">
-      <button class="dur-btn" data-d="2000">Cepat</button>
-      <button class="dur-btn aktif" data-d="4000">Normal</button>
-      <button class="dur-btn" data-d="6500">Santai</button>
-    </div>
-  </div>
+<div class="ikonbar">
+  <button id="minus">−</button>
+  <div class="mini angka" id="jml-ikon"></div>
+  <button id="plus">+</button>
+  <button class="dur-btn" data-d="2000" title="Cepat">⚡</button>
+  <button class="dur-btn" data-d="4000" title="Normal">🕓</button>
+  <button class="dur-btn" data-d="6500" title="Santai">🐢</button>
 </div>
 
-<button id="btn-roll">🎲 LEMPAR</button>
-
-<footer>Dadu hewan selalu ikut terlempar: 🐘 Gajah · 🐔 Ayam · 🐉 Naga, merah / putih</footer>
+<button id="btn-roll">🎲</button>
 
 <script>
 (function(){
   // ============================================================
-  //  ROLL ENGINE v1.3 — port setia gerakan The Dice v6.3
-  //  (referensi: roll.js TheDice_AIDE_v6.3, hasil dekompilasi asli)
-  //
-  //   1. KONTER GLOBAL: semua dadu berganti wajah SEREMPAK
-  //      mengikuti satu konter bersama (1..6, dadu hewan 0..5).
-  //   2. HITUNG MUNDUR MINIMUM: semua dadu wajib berputar minimal
-  //      beberapa detik (asli: postDelayed 3000L).
-  //   3. JENDELA BERHENTI dibuka di wajah 2 pertama setelah mundur
-  //      selesai -> urutan pendaratan tetap 2,3,4,5,6,1;
-  //      kembar berhenti serempak di tick yang sama.
-  //   4. BERHENTI DI WAJAH HASIL: dadu diam tepat saat wajah yang
-  //      sedang berputar = hasilnya (mendarat alami tanpa snap).
-  //   5. ANIMASI WAJAH (port show_right.xml + hide_left.xml):
-  //      wajah baru tumbuh dari sliver tipis di tepi KANAN
-  //      (scale 0->1, pivot 100% 50%), wajah lama menyusut jadi
-  //      sliver keluar ke KIRI (scale 1->0, pivot 0% 50%),
-  //      interpolator AccelerateDecelerate, akselerasi GPU.
-  //   6. PEMBUKA TANPA JEDA: hasil lemparan sebelumnya di-hard-cut
-  //      jadi wajah 6 lalu pada tick pertama langsung slide 6->1,
-  //      satu gerakan menyambung. Kecuali bila dadu memang sedang
-  //      diam di wajah 6 (roll pertama).
-  //   7. Dadu hewan: ikut siklus serempak (indeks 0..5), berhenti
-  //      paling akhir tepat di wajah hasilnya + bunyi gong.
+  //  ROLL ENGINE v1.4 — port setia gerakan The Dice v6.3
+  //  + UI tanpa teks (ikon murni) + dadu tersusun vertikal
+  //  + dadu hewan: wajah putih, hanya hewannya berwarna (SVG)
   // ============================================================
   var PIP = {
     1:[5],
@@ -202,29 +127,20 @@
     5:[1,3,5,7,9],
     6:[1,3,4,6,7,9]
   };
+  // hewan: [jenis, warna] — jenis 0=gajah 1=ayam 2=naga; warna 0=merah 1=putih
   var HEWAN = [
-    { ikon:'🐘', nama:'Gajah Merah',  singkat:'Gajah-M' },
-    { ikon:'🐘', nama:'Gajah Putih', singkat:'Gajah-P' },
-    { ikon:'🐔', nama:'Ayam Merah',  singkat:'Ayam-M' },
-    { ikon:'🐔', nama:'Ayam Putih',  singkat:'Ayam-P' },
-    { ikon:'🐉', nama:'Naga Merah',   singkat:'Naga-M' },
-    { ikon:'🐉', nama:'Naga Putih',   singkat:'Naga-P' }
+    [0,0],[0,1],   // Gajah Merah, Gajah Putih
+    [1,0],[1,1],   // Ayam Merah, Ayam Putih
+    [2,0],[2,1]    // Naga Merah, Naga Putih
   ];
-  var KODE = { 'Gajah-M':'GM','Gajah-P':'GP','Ayam-M':'AM','Ayam-P':'AP','Naga-M':'NM','Naga-P':'NP' };
 
-  // Tempo ganti wajah: 4 wajah/detik (permintaan user; asli 200ms)
   var FRAME_MS = 250;
-  var EASE = 'cubic-bezier(0.42, 0, 0.58, 1)'; // ~= AccelerateDecelerateInterpolator
+  var EASE = 'cubic-bezier(0.42, 0, 0.58, 1)';
 
   var meja = document.getElementById('meja');
-  var hasil = document.getElementById('hasil');
-  var hewanHasil = document.getElementById('hewanhasil');
-  var riwayatEl = document.getElementById('riwayat');
-  var btnRoll = document.getElementById('btn-roll');
-  var jmlEl = document.getElementById('jml');
   var predPanel = document.getElementById('prediksi');
-  var predNums = document.getElementById('pred-nums');
-  var predTot = document.getElementById('pred-tot');
+  var jmlIkon = document.getElementById('jml-ikon');
+  var btnRoll = document.getElementById('btn-roll');
   var eyeBtn = document.getElementById('eye');
 
   var state = {
@@ -242,9 +158,6 @@
     if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
     if(actx && actx.state==='suspended') actx.resume();
   }
-  function tickSfx(){ blip(2200,0.02,0.04,'square'); }
-  function thud(){ blip(160,0.09,0.22,'sine'); }
-  function gong(){ blip(520,0.35,0.18,'triangle'); }
   function blip(freq,dur,vol,type){
     if(state.muted || !actx) return;
     var o = actx.createOscillator(), g = actx.createGain();
@@ -253,6 +166,65 @@
     g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
     o.connect(g); g.connect(actx.destination);
     o.start(); o.stop(actx.currentTime + dur);
+  }
+  function tickSfx(){ blip(2200,0.02,0.04,'square'); }
+  function thud(){ blip(160,0.09,0.22,'sine'); }
+  function gong(){ blip(520,0.35,0.18,'triangle'); }
+
+  // ---------- SVG hewan (siluet, hanya hewan yang berwarna) ----------
+  function hewanSvg(idx, mini){
+    var jenis = HEWAN[idx][0], merah = HEWAN[idx][1]===0;
+    var col = merah ? '#d32f2f' : '#ffffff';
+    var stroke = merah ? 'none' : '#37474f';
+    var eye = merah ? '#ffffff' : '#37474f';
+    var bentuk = '';
+    if(jenis===0){ // GAJAH
+      bentuk =
+        '<ellipse cx="30" cy="27" rx="12" ry="10"/>'+
+        '<circle cx="13.5" cy="21" r="7.5"/>'+
+        '<path d="M11 26 C5.5 28 4 36 8 41 C10.5 44 15 44 15.5 40.5 C16 38 13 38.5 11.5 36 C9.5 32.5 10.5 29.5 13 28.5 Z"/>'+
+        '<circle cx="17.5" cy="18" r="4"/>'+
+        '<rect x="20" y="33" width="5" height="10" rx="2"/>'+
+        '<rect x="28" y="34" width="5" height="10" rx="2"/>'+
+        '<rect x="36" y="33" width="5" height="10" rx="2"/>'+
+        '<path d="M41 23 C45.5 24 46.5 29 44.5 33 C44 31 43.5 28.5 40.5 27.5 Z"/>'+
+        '<circle cx="11.5" cy="19.5" r="1.4" fill="'+eye+'" stroke="none"/>';
+    } else if(jenis===1){ // AYAM
+      bentuk =
+        '<ellipse cx="28" cy="31" rx="10.5" ry="8.5"/>'+
+        '<path d="M36 28 C43.5 24.5 44.5 14.5 39 8.5 C40 15.5 36 19 33 21 C35 15 32 12 29 11 C33 15 32 21 30 25 Z"/>'+
+        '<circle cx="17.5" cy="18" r="5.5"/>'+
+        '<circle cx="20.5" cy="23.5" r="4.5"/>'+
+        '<path d="M12.5 16.5 L6.5 19 L12.5 21.5 Z"/>'+
+        '<circle cx="15.5" cy="12.7" r="2"/>'+
+        '<circle cx="19" cy="11.8" r="2.2"/>'+
+        '<rect x="25" y="38" width="2.2" height="6" rx="1.1"/>'+
+        '<rect x="30" y="38" width="2.2" height="6" rx="1.1"/>'+
+        '<circle cx="16.2" cy="17" r="1.3" fill="'+eye+'" stroke="none"/>';
+    } else { // NAGA
+      bentuk =
+        '<circle cx="10" cy="36" r="5"/>'+
+        '<circle cx="16" cy="39" r="5"/>'+
+        '<circle cx="23" cy="38" r="5"/>'+
+        '<circle cx="28.5" cy="33" r="5"/>'+
+        '<circle cx="31" cy="26" r="5"/>'+
+        '<circle cx="29" cy="19" r="5"/>'+
+        '<circle cx="33.5" cy="13.5" r="5"/>'+
+        '<ellipse cx="40" cy="10" rx="6" ry="4.6"/>'+
+        '<path d="M44.5 7.5 L50 9.5 L44.5 12.5 Z"/>'+
+        '<path d="M37 6.5 L35 1 L39 4 Z"/>'+
+        '<path d="M43 6 L45.5 1 L41 4 Z"/>'+
+        '<rect x="11" y="41" width="3" height="5" rx="1.5"/>'+
+        '<rect x="21" y="41" width="3" height="5" rx="1.5"/>'+
+        '<circle cx="41.5" cy="9" r="1.2" fill="'+eye+'" stroke="none"/>';
+    }
+    var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 48 48');
+    svg.setAttribute('data-jenis', jenis);
+    svg.setAttribute('data-warna', merah ? 'merah' : 'putih');
+    if(mini) svg.setAttribute('class','mini-svg');
+    svg.innerHTML = '<g fill="'+col+'" stroke="'+stroke+'" stroke-width="1.3" stroke-linejoin="round">'+bentuk+'</g>';
+    return svg;
   }
 
   // ---------- pembangun wajah ----------
@@ -266,47 +238,49 @@
     return m;
   }
   function makeMukaHewan(idx){
-    var h = HEWAN[idx];
-    var m = document.createElement('div');
-    m.className = 'muka hewan ' + (idx%2===0 ? 'merah' : 'putih');
-    var i = document.createElement('div'); i.className='ikon'; i.textContent = h.ikon;
-    var nm = document.createElement('div'); nm.className='nama'; nm.textContent = h.singkat;
-    m.appendChild(i); m.appendChild(nm);
+    var m = document.createElement('div'); m.className='muka hewan';
+    m.appendChild(hewanSvg(idx));
     return m;
   }
   function makeDadu(tipe, cur){
     var d = document.createElement('div'); d.className='dadu'; d.dataset.tipe=tipe; d.dataset.cur=cur;
     var k = document.createElement('div'); k.className='kubus';
     var awal = tipe==='hewan' ? makeMukaHewan(cur) : makeMukaAngka(cur);
-    awal.classList.add('tampil');   // agar ikut menyusut keluar saat showFace pertama
+    awal.classList.add('tampil');
     k.appendChild(awal);
     d.appendChild(k);
     return d;
   }
   function renderMeja(){
     meja.innerHTML='';
+    meja.classList.toggle('padat', state.jumlah>=5);
     var i;
     for(i=0;i<state.jumlah;i++) meja.appendChild(makeDadu('angka', 6));
-    meja.appendChild(makeDadu('hewan', 5));   // hewan "diam di 6" = Naga Putih
+    meja.appendChild(makeDadu('hewan', 5));   // hewan "diam di 6"
+    renderJmlIkon();
+  }
+  function renderJmlIkon(){
+    jmlIkon.innerHTML='';
+    for(var i=1;i<=9;i++){
+      var c = document.createElement('span');
+      if(PIP[state.jumlah].indexOf(i)>=0) c.className='p';
+      jmlIkon.appendChild(c);
+    }
   }
 
   // ---------- ANIMASI WAJAH (port show_right / hide_left asli) ----------
   function showFace(b, face){
     var kubus = b.el.querySelector('.kubus');
     var prev = kubus.querySelector('.muka.tampil');
-
-    // wajah baru: sliver tipis di tepi kanan -> tumbuh penuh (pivot 100% 50%)
     var baru = b.hewan ? makeMukaHewan(face) : makeMukaAngka(face);
     baru.classList.add('tampil');
     baru.style.transformOrigin = '100% 50%';
     baru.style.transform = 'scale(0, 0.8)';
     baru.style.transition = 'none';
     kubus.appendChild(baru);
-    void baru.offsetWidth;  // paksa reflow agar kondisi awal terpasang
+    void baru.offsetWidth;
     baru.style.transition = 'transform ' + FRAME_MS + 'ms ' + EASE;
     baru.style.transform = 'scale(1, 1)';
-
-    // wajah lama: menyusut jadi sliver keluar tepi kiri lalu dibuang (pivot 0% 50%)
     if(prev){
       prev.classList.remove('tampil');
       prev.style.transformOrigin = '0% 50%';
@@ -319,7 +293,7 @@
     b.el.dataset.cur = face;
   }
 
-  // ---------- prediksi ----------
+  // ---------- prediksi (ditampilkan sebagai mini dadu, tanpa teks) ----------
   function acak(n){
     var t=[]; for(var i=0;i<n;i++) t.push(1+Math.floor(Math.random()*6));
     return t;
@@ -327,28 +301,40 @@
   function genNext(){
     state.next = { nums: acak(state.jumlah), hewan: Math.floor(Math.random()*6) };
   }
+  function miniAngka(n){
+    var m = document.createElement('div'); m.className='mini angka';
+    for(var i=1;i<=9;i++){
+      var c = document.createElement('span');
+      if(PIP[n].indexOf(i)>=0) c.className='p';
+      m.appendChild(c);
+    }
+    return m;
+  }
+  function miniHewan(idx){
+    var m = document.createElement('div'); m.className='mini hewan';
+    m.appendChild(hewanSvg(idx, true));
+    return m;
+  }
   function refreshPrediction(){
     if(!state.next || state.next.nums.length!==state.jumlah) genNext();
+    predPanel.innerHTML='';
     if(state.prediksiOn){
-      var h = HEWAN[state.next.hewan];
-      predNums.textContent = state.next.nums.join('  ·  ') + '   ' + h.ikon;
-      var tot = state.next.nums.reduce(function(a,b){return a+b;},0);
-      predTot.textContent = 'Total angka: ' + tot + '  ·  Hewan: ' + h.nama;
+      state.next.nums.forEach(function(n){ predPanel.appendChild(miniAngka(n)); });
+      var sep = document.createElement('div'); sep.className='mini sep';
+      predPanel.appendChild(sep);
+      predPanel.appendChild(miniHewan(state.next.hewan));
       predPanel.classList.add('show');
     } else {
       predPanel.classList.remove('show');
     }
   }
 
-  // ---------- ROLL (konter global serempak, asli Tick200mils) ----------
+  // ---------- ROLL (konter global serempak) ----------
   function roll(){
     if(state.rolling) return;
     state.rolling = true;
     btnRoll.disabled = true;
-    hasil.textContent = '';
-    hewanHasil.textContent = '';
 
-    // Aturan 1: hasil ditetapkan SEBELUM animasi (dari mode prediksi / acak)
     var angka, hewanIdx;
     if(state.next && state.next.nums.length===state.jumlah){
       angka = state.next.nums.slice(); hewanIdx = state.next.hewan;
@@ -367,15 +353,12 @@
       };
     });
 
-    // hitung mundur minimum (asli: postDelayed 3000L); Cepat/Santai diskalakan
     var MIN_SPIN_MS = state.durasi===2000 ? 1500 : (state.durasi===6500 ? 5000 : 3000);
-    var secCounter = 5;           // asli: secCounter = 5 saat dilempar
+    var secCounter = 5;
     var minSpinDone = false;
     var stopWindowOpen = false;
     setTimeout(function(){ minSpinDone = true; }, MIN_SPIN_MS);
 
-    // PEMBUKA tanpa jeda: hard-cut hasil lama -> wajah 6, slide menyambung di tick 1.
-    // Pengecualian: bila dadu memang sedang diam di wajah 6, biarkan (roll pertama).
     balls.forEach(function(b){
       var diamDi6 = b.hewan ? (b.cur===5) : (b.cur===6);
       if(!diamDi6) showFace(b, b.hewan ? 5 : 6);
@@ -383,10 +366,9 @@
 
     function tick(){
       secCounter += 1;
-      if(secCounter >= 6) secCounter = 0;   // konter global (asli)
-      var face = secCounter + 1;            // wajah 1..6 utk dadu angka
+      if(secCounter >= 6) secCounter = 0;
+      var face = secCounter + 1;
 
-      // jendela stop dibuka di wajah 2 pertama setelah mundur selesai
       if(!stopWindowOpen && minSpinDone && face===2) stopWindowOpen = true;
 
       var allNumStoped = balls.every(function(b){ return b.hewan || b.stoped; });
@@ -396,22 +378,22 @@
         if(b.stoped) return;
         if(!b.hewan){
           if(stopWindowOpen && face===b.value){
-            showFace(b, face);        // wajah hasil meluncur masuk...
-            b.stoped = true;          // ...lalu dadu diam (alami, tanpa snap)
+            showFace(b, face);
+            b.stoped = true;
             b.el.dataset.stoped = '1';
             thud();
           } else {
-            showFace(b, face);        // serempak mengikuti konter global
+            showFace(b, face);
             anySpinning = true;
           }
         } else {
           if(allNumStoped && secCounter===b.value){
-            showFace(b, b.value);     // hewan mendarat di wajah hasilnya
+            showFace(b, b.value);
             b.stoped = true;
             b.el.dataset.stoped = '1';
             gong();
           } else {
-            showFace(b, secCounter);  // siklus serempak indeks 0..5
+            showFace(b, secCounter);
             anySpinning = true;
           }
         }
@@ -421,21 +403,9 @@
       if(anySpinning) setTimeout(tick, FRAME_MS);
       else setTimeout(selesai, FRAME_MS);
     }
-    setTimeout(tick, FRAME_MS);   // asli: postDelayed(tick, 200L)
+    setTimeout(tick, FRAME_MS);
 
     function selesai(){
-      var tot = angka.reduce(function(a,b){return a+b;},0);
-      var h = HEWAN[hewanIdx];
-      hasil.textContent = state.jumlah>1
-        ? ('Hasil: ' + angka.join(' + ') + ' = ' + tot)
-        : ('Angka: ' + tot);
-      hewanHasil.textContent = '🐾 ' + h.ikon + ' ' + h.nama;
-
-      var r = document.createElement('span'); r.className='riw';
-      r.textContent = angka.join('-') + (state.jumlah>1 ? '('+tot+')' : '') + ' · ' + KODE[h.singkat];
-      riwayatEl.insertBefore(r, riwayatEl.firstChild);
-      while(riwayatEl.children.length>6) riwayatEl.removeChild(riwayatEl.lastChild);
-
       genNext();
       refreshPrediction();
       state.rolling = false;
@@ -443,15 +413,14 @@
     }
   }
 
-  // ---------- kontrol ----------
+  // ---------- kontrol (ikon murni) ----------
   document.getElementById('minus').onclick = function(){ ubahJumlah(-1); };
   document.getElementById('plus').onclick  = function(){ ubahJumlah(1); };
   function ubahJumlah(d){
     if(state.rolling) return;
     state.jumlah = Math.min(6, Math.max(1, state.jumlah+d));
     localStorage.setItem('da_jumlah', state.jumlah);
-    jmlEl.textContent = state.jumlah;
-    renderMeja(); riwayatEl.innerHTML=''; hasil.textContent=''; hewanHasil.textContent='';
+    renderMeja();
     genNext(); refreshPrediction();
   }
 
@@ -465,24 +434,6 @@
     };
   });
 
-  // Mode prediksi: tekan lama logo untuk toggle
-  var pressTimer=null, logo=document.getElementById('logo');
-  logo.addEventListener('touchstart', startPress, {passive:true});
-  logo.addEventListener('mousedown', startPress);
-  logo.addEventListener('touchend', cancelPress);
-  logo.addEventListener('mouseup', cancelPress);
-  logo.addEventListener('mouseleave', cancelPress);
-  function startPress(e){
-    pressTimer = setTimeout(function(){
-      eyeBtn.classList.add('show');
-      state.prediksiOn = !state.prediksiOn;
-      eyeBtn.classList.toggle('on', state.prediksiOn);
-      localStorage.setItem('da_eye', state.prediksiOn?'1':'0');
-      refreshPrediction();
-      pressTimer=null;
-    }, 700);
-  }
-  function cancelPress(){ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } }
   eyeBtn.onclick = function(){
     state.prediksiOn = !state.prediksiOn;
     eyeBtn.classList.toggle('on', state.prediksiOn);
@@ -499,13 +450,12 @@
   };
 
   btnRoll.onclick = function(){ ensureAudio(); roll(); };
+  meja.addEventListener('click', function(){ ensureAudio(); roll(); });  // tap area dadu = lempar, ala referensi
 
   // init
-  jmlEl.textContent = state.jumlah;
   document.querySelectorAll('.dur-btn').forEach(function(b){
     b.classList.toggle('aktif', parseInt(b.dataset.d,10)===state.durasi);
   });
-  eyeBtn.classList.toggle('show', localStorage.getItem('da_eye')!==null);
   eyeBtn.classList.toggle('on', state.prediksiOn);
   renderMeja();
   refreshPrediction();
