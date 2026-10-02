@@ -245,19 +245,23 @@
     }
   }
 
-  // ---------- interaksi: TAP DADU = pilih jumlah + lempar ----------
-  meja.addEventListener('click', function(e){
+  // ---------- interaksi: TAP DI MANA PUN = lempar ----------
+  // Tap dadu tertentu: sekaligus memilih jumlah (dadu ke-k = k angka,
+  // dadu hewan = penuh 6 angka + hewan). Tap area kosong: lempar lagi
+  // dengan jumlah yang sedang dipakai (next roll).
+  document.body.addEventListener('click', function(e){
     if(state.rolling) return;
-    var el = e.target.closest ? e.target.closest('.dadu') : null;
-    if(!el) return;
     ensureAudio();
-    var dice = document.querySelectorAll('.dadu');
-    if(el.dataset.tipe==='hewan'){
-      state.jumlah = 6;              // tap dadu hewan = main penuh 7 dadu
-    } else {
-      state.jumlah = Array.prototype.indexOf.call(dice, el) + 1;  // tap dadu ke-k = main k angka
+    var el = e.target.closest ? e.target.closest('.dadu') : null;
+    if(el){
+      var dice = document.querySelectorAll('.dadu');
+      if(el.dataset.tipe==='hewan'){
+        state.jumlah = 6;              // tap dadu hewan = main penuh 7 dadu
+      } else {
+        state.jumlah = Array.prototype.indexOf.call(dice, el) + 1;  // tap dadu ke-k = main k angka
+      }
+      renderMeja();
     }
-    renderMeja();
     roll();
   });
 
