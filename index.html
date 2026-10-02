@@ -11,7 +11,7 @@
     font-family: Arial, sans-serif;
     background: radial-gradient(ellipse at center, #1d6b3f 0%, #0e4a29 60%, #07301b 100%);
     color:#fff; display:flex; flex-direction:column; align-items:center;
-    min-height:100vh; user-select:none; padding:8px; overflow-x:hidden;
+    height:100vh; user-select:none; padding:8px; overflow-x:hidden;
   }
 
   #prediksi {
@@ -23,11 +23,13 @@
   #prediksi.show { display:flex; }
 
   /* dadu tersusun VERTIKAL seperti referensi */
+  body { height:100vh; }
   .meja {
-    margin:8px 0; width:100%;
-    display:flex; flex-direction:column; align-items:center; gap:10px;
-    padding:10px 0; min-height:80px;
+    margin:0; width:100%; flex:1 1 auto; min-height:0;
+    display:flex; flex-direction:column; align-items:center;
+    padding:6px 0; overflow-y:auto;
   }
+  .tumpuk { margin:auto 0; display:flex; flex-direction:column; align-items:center; gap:10px; }
   .dadu { width:66px; height:66px; position:relative; }
   .dadu .kubus { position:absolute; top:0; left:0; width:100%; height:100%; }
 
@@ -42,7 +44,7 @@
   .muka.angka { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:8px; }
   .muka.angka .p { border-radius:50%; background:#1a1a1a; align-self:center; justify-self:center; width:12px; height:12px; box-shadow: inset 0 1px 2px rgba(255,255,255,.35), inset 0 -1px 2px rgba(0,0,0,.5); }
   .muka.hewan { display:flex; align-items:center; justify-content:center; }
-  .muka.hewan img { width:72%; height:72%; }
+  .muka.hewan img { width:100%; height:100%; object-fit:cover; display:block; }
 
   /* mini dadu (ikon jumlah & prediksi) */
   .mini { width:26px; height:26px; border-radius:6px; position:relative;
@@ -52,7 +54,7 @@
   .mini.angka { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:3px; }
   .mini.angka .p { border-radius:50%; background:#1a1a1a; align-self:center; justify-self:center; width:4.5px; height:4.5px; }
   .mini.hewan { display:flex; align-items:center; justify-content:center; }
-  .mini.hewan img { width:82%; height:82%; }
+  .mini.hewan img { width:100%; height:100%; object-fit:cover; display:block; }
   .mini.sep { width:2px; height:22px; background:rgba(255,215,0,.4); border-radius:2px; flex:0 0 auto; }
 
   .ikonbar {
@@ -83,12 +85,12 @@
   @media (max-height:720px){
     .meja.padat .dadu { width:52px; height:52px; }
     .meja.padat .muka.angka { padding:6px; } .meja.padat .muka.angka .p { width:9px; height:9px; }
-    .meja { gap:8px; }
+    .meja .tumpuk { gap:8px; }
   }
   @media (max-height:620px){
     .dadu { width:52px; height:52px; }
     .muka.angka { padding:6px; } .muka.angka .p { width:9px; height:9px; }
-    .meja { gap:7px; }
+    .meja .tumpuk { gap:7px; }
   }
 </style>
 </head>
@@ -208,9 +210,11 @@
   function renderMeja(){
     meja.innerHTML='';
     meja.classList.toggle('padat', state.jumlah>=5);
+    var t = document.createElement('div'); t.className='tumpuk';
     var i;
-    for(i=0;i<state.jumlah;i++) meja.appendChild(makeDadu('angka', 6));
-    meja.appendChild(makeDadu('hewan', 5));   // hewan "diam di 6"
+    for(i=0;i<state.jumlah;i++) t.appendChild(makeDadu('angka', 6));
+    t.appendChild(makeDadu('hewan', 5));   // hewan "diam di 6"
+    meja.appendChild(t);
     renderJmlIkon();
   }
   function renderJmlIkon(){
