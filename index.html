@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dadu Aja - Lempar Dadu</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(ellipse at center, #1d6b3f 0%, #0e4a29 60%, #07301b 100%);
+    color:#fff; display:flex; flex-direction:column; align-items:center;
+    min-height:100vh; user-select:none; padding:12px; overflow-x:hidden;
+  }
+  header { text-align:center; padding:8px 16px 4px; }
+  h1 {
+    font-size:1.6em; letter-spacing:2px; font-weight:800;
+    text-shadow: 0 2px 4px rgba(0,0,0,.5); display:inline-flex; align-items:center; gap:8px;
+  }
+  .eye-btn {
+    background:none; border:none; font-size:1em; cursor:pointer; opacity:0;
+    transition:opacity .4s, transform .2s; filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));
+  }
+  .eye-btn.show { opacity:.85; }
+  .eye-btn.on { opacity:1; transform:scale(1.15); }
+  .sub { font-size:.72em; opacity:.6; margin-top:2px; }
+
+  /* Panel prediksi */
+  #prediksi {
+    margin:8px auto 0; max-width:340px; width:100%;
+    background:rgba(0,0,0,.35); border:1px solid rgba(255,215,0,.35);
+    border-radius:14px; padding:10px 12px; text-align:center;
+    display:none; animation:fadein .4s;
+  }
+  #prediksi.show { display:block; }
+  #prediksi .lbl { font-size:.72em; color:#ffd54f; letter-spacing:1px; text-transform:uppercase; }
+  #prediksi .nums { font-size:1.5em; font-weight:800; margin-top:4px; color:#ffe082; word-spacing:10px; }
+  #prediksi .tot { font-size:.8em; opacity:.75; margin-top:2px; }
+  @keyframes fadein { from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:none;} }
+
+  .meja {
+    margin:14px 0 10px; width:100%; max-width:520px;
+    display:flex; flex-wrap:wrap; justify-content:center; gap:14px;
+    padding:18px 10px; min-height:150px; align-content:center;
+  }
+  .dadu {
+    width:72px; height:72px; perspective:600px; position:relative;
+  }
+  .dadu .kubus {
+    width:100%; height:100%; position:relative; transform-style:preserve-3d;
+    transition:transform .1s linear;
+  }
+  .muka {
+    position:absolute; width:72px; height:72px; border-radius:12px;
+    background:linear-gradient(145deg,#ffffff,#dfe6e9);
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,.15), 0 4px 10px rgba(0,0,0,.45);
+    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr);
+    padding:9px; backface-visibility:visible;
+  }
+  .muka .p { border-radius:50%; background:#1a1a1a; align-self:center; justify-self:center; width:13px; height:13px; box-shadow: inset 0 1px 2px rgba(255,255,255,.35), inset 0 -1px 2px rgba(0,0,0,.5); }
+  .dadu.rolling .kubus { animation:guncang .12s linear infinite; }
+  @keyframes guncang {
+    0%{transform:rotateZ(0) translateY(0);}
+    25%{transform:rotateZ(-8deg) translateY(-4px);}
+    50%{transform:rotateZ(0) translateY(0);}
+    75%{transform:rotateZ(8deg) translateY(-4px);}
+    100%{transform:rotateZ(0) translateY(0);}
+  }
+  .dadu.stop { animation:tempat .35s ease; }
+  @keyframes tempat { 0%{transform:scale(1);} 40%{transform:scale(1.12);} 100%{transform:scale(1);} }
+
+  /* kontrol */
+  .kontrol {
+    width:100%; max-width:520px; background:rgba(0,0,0,.3);
+    border-radius:16px; padding:12px 14px; display:flex; flex-wrap:wrap;
+    gap:10px 16px; align-items:center; justify-content:center;
+  }
+  .grup { display:flex; align-items:center; gap:8px; }
+  .grup label { font-size:.78em; opacity:.8; letter-spacing:.5px; }
+  .stepper { display:flex; align-items:center; gap:6px; }
+  .stepper button, .dur-btn, #btn-roll, #btn-mute {
+    border:none; border-radius:10px; cursor:pointer; font-weight:700;
+    transition:transform .15s, background .2s;
+  }
+  .stepper button {
+    width:32px; height:32px; font-size:1.1em; background:rgba(255,255,255,.16); color:#fff;
+  }
+  .stepper button:active { transform:scale(.92); background:rgba(255,255,255,.3); }
+  .stepper .val { min-width:26px; text-align:center; font-size:1.05em; font-weight:800; }
+  .dur-wrap { display:flex; gap:6px; }
+  .dur-btn { padding:7px 12px; font-size:.78em; background:rgba(255,255,255,.14); color:#fff; }
+  .dur-btn.aktif { background:#ffd54f; color:#333; box-shadow:0 2px 6px rgba(0,0,0,.3); }
+
+  #btn-roll {
+    margin:14px 0 6px; padding:14px 52px; font-size:1.15em; letter-spacing:1px;
+    background:linear-gradient(180deg,#ffca28,#ffb300); color:#3e2723;
+    border-radius:40px; box-shadow:0 5px 14px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,255,255,.5);
+  }
+  #btn-roll:active { transform:scale(.95); }
+  #btn-roll:disabled { filter:grayscale(.6) brightness(.8); cursor:default; }
+
+  #hasil { min-height:34px; font-size:1.25em; font-weight:800; text-align:center; color:#ffe082; text-shadow:0 1px 3px rgba(0,0,0,.5); }
+
+  #riwayat { margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; justify-content:center; min-height:22px; }
+  .riw {
+    font-size:.7em; background:rgba(255,255,255,.12); border-radius:8px;
+    padding:3px 8px; opacity:.85;
+  }
+
+  #btn-mute {
+    position:fixed; top:10px; right:10px; width:38px; height:38px; font-size:1em;
+    background:rgba(0,0,0,.35); color:#fff; border-radius:50%;
+  }
+
+  footer { margin-top:auto; padding:10px; font-size:.65em; opacity:.45; text-align:center; }
+
+  @media (max-width:400px){
+    .dadu, .muka { width:56px; height:56px; }
+    .muka { padding:7px; } .muka .p { width:10px; height:10px; }
+    #btn-roll { padding:13px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<button id="btn-mute" title="Suara">🔊</button>
+
+<header>
+  <h1><span id="logo">🎲 DADU AJA</span><button class="eye-btn" id="eye" title="Mode Prediksi">👁</button></h1>
+  <div class="sub">Lempar dadu, atur durasinya, intip angka berikutnya</div>
+</header>
+
+<div id="prediksi">
+  <div class="lbl">✨ Angka lemparan berikutnya</div>
+  <div class="nums" id="pred-nums"></div>
+  <div class="tot" id="pred-tot"></div>
+</div>
+
+<div class="meja" id="meja"></div>
+
+<div id="hasil"></div>
+<div id="riwayat"></div>
+
+<div class="kontrol">
+  <div class="grup">
+    <label>Jumlah dadu</label>
+    <div class="stepper">
+      <button id="minus">−</button><span class="val" id="jml">2</span><button id="plus">+</button>
+    </div>
+  </div>
+  <div class="grup">
+    <label>Durasi</label>
+    <div class="dur-wrap">
+      <button class="dur-btn" data-d="2000">Cepat</button>
+      <button class="dur-btn aktif" data-d="4000">Normal</button>
+      <button class="dur-btn" data-d="6500">Santai</button>
+    </div>
+  </div>
+</div>
+
+<button id="btn-roll">🎲 LEMPAR</button>
+
+<footer>Versi web dari "The Dice" · durasi &amp; prediksi bisa diatur</footer>
+
+<script>
+(function(){
+  var PIP = {
+    1:[5],
+    2:[1,9],
+    3:[1,5,9],
+    4:[1,3,7,9],
+    5:[1,3,5,7,9],
+    6:[1,3,4,6,7,9]
+  };
+  var meja = document.getElementById('meja');
+  var hasil = document.getElementById('hasil');
+  var riwayatEl = document.getElementById('riwayat');
+  var btnRoll = document.getElementById('btn-roll');
+  var jmlEl = document.getElementById('jml');
+  var predPanel = document.getElementById('prediksi');
+  var predNums = document.getElementById('pred-nums');
+  var predTot = document.getElementById('pred-tot');
+  var eyeBtn = document.getElementById('eye');
+
+  var state = {
+    jumlah: parseInt(localStorage.getItem('da_jumlah')||'2',10),
+    durasi: parseInt(localStorage.getItem('da_durasi')||'4000',10),
+    prediksiOn: localStorage.getItem('da_eye')==='1',
+    muted: localStorage.getItem('da_mute')==='1',
+    rolling: false,
+    nextTargets: null
+  };
+
+  // ---------- suara ----------
+  var actx = null;
+  function ensureAudio(){
+    if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(actx && actx.state==='suspended') actx.resume();
+  }
+  function tick(){ blip(2200,0.02,0.04,'square'); }
+  function thud(){ blip(160,0.09,0.22,'sine'); }
+  function blip(freq,dur,vol,type){
+    if(state.muted || !actx) return;
+    var o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + dur);
+  }
+
+  // ---------- render dadu ----------
+  function makeMuka(n){
+    var m = document.createElement('div'); m.className='muka';
+    for(var i=1;i<=9;i++){
+      var c = document.createElement('span');
+      if(PIP[n].indexOf(i)>=0) c.className='p';
+      m.appendChild(c);
+    }
+    return m;
+  }
+  function makeDadu(){
+    var d = document.createElement('div'); d.className='dadu';
+    var k = document.createElement('div'); k.className='kubus';
+    k.appendChild(makeMuka(6));
+    d.appendChild(k);
+    return d;
+  }
+  function renderMeja(){
+    meja.innerHTML='';
+    for(var i=0;i<state.jumlah;i++) meja.appendChild(makeDadu());
+  }
+  function setMuka(d, n){ d.querySelector('.muka') ? d.replaceChild(makeMuka(n), d.querySelector('.muka')) : d.appendChild(makeMuka(n)); }
+
+  // ---------- prediksi ----------
+  function genTargets(n){
+    var t=[]; for(var i=0;i<n;i++) t.push(1+Math.floor(Math.random()*6));
+    return t;
+  }
+  function refreshPrediction(){
+    if(!state.nextTargets || state.nextTargets.length!==state.jumlah) state.nextTargets = genTargets(state.jumlah);
+    if(state.prediksiOn){
+      predNums.textContent = state.nextTargets.join('  ·  ');
+      var tot = state.nextTargets.reduce(function(a,b){return a+b;},0);
+      predTot.textContent = 'Total: ' + tot;
+      predPanel.classList.add('show');
+    } else {
+      predPanel.classList.remove('show');
+    }
+  }
+
+  // ---------- roll ----------
+  function roll(){
+    if(state.rolling) return;
+    state.rolling = true;
+    btnRoll.disabled = true;
+    hasil.textContent = '';
+
+    // angka yang KELUAR = angka yang sudah diprediksi (kalau mode aktif)
+    var targets = (state.nextTargets && state.nextTargets.length===state.jumlah)
+      ? state.nextTargets.slice() : genTargets(state.jumlah);
+
+    var dice = Array.prototype.slice.call(document.querySelectorAll('.dadu'));
+    var n = dice.length;
+    var dur = state.durasi;
+    var stagger = Math.min(900, dur*0.55) / n;   // jeda antar dadu berhenti
+    var base = dur - stagger*(n-1);
+    var flipMs = 130;
+
+    dice.forEach(function(d){ d.classList.add('rolling'); });
+
+    // klok flip
+    var flipTimer = setInterval(function(){
+      dice.forEach(function(d,i){
+        if(!d.classList.contains('rolling')) return;
+        setMuka(d, 1+Math.floor(Math.random()*6));
+      });
+      tick();
+    }, flipMs);
+
+    // jadwal berhenti per dadu
+    dice.forEach(function(d,i){
+      setTimeout(function(){
+        d.classList.remove('rolling');
+        d.classList.add('stop');
+        setMuka(d, targets[i]);
+        thud();
+        setTimeout(function(){ d.classList.remove('stop'); }, 400);
+      }, base + stagger*i);
+    });
+
+    // selesai semua
+    setTimeout(function(){
+      clearInterval(flipTimer);
+      var tot = targets.reduce(function(a,b){return a+b;},0);
+      hasil.textContent = n>1 ? ('Hasil: ' + targets.join(' + ') + ' = ' + tot) : ('Angka: ' + tot);
+
+      var r = document.createElement('span'); r.className='riw';
+      r.textContent = targets.join('-') + (n>1 ? ' ('+tot+')' : '');
+      riwayatEl.insertBefore(r, riwayatEl.firstChild);
+      while(riwayatEl.children.length>6) riwayatEl.removeChild(riwayatEl.lastChild);
+
+      // siapkan prediksi lemparan berikutnya
+      state.nextTargets = genTargets(state.jumlah);
+      refreshPrediction();
+
+      state.rolling = false;
+      btnRoll.disabled = false;
+    }, dur + 500);
+  }
+
+  // ---------- kontrol ----------
+  document.getElementById('minus').onclick = function(){ ubahJumlah(-1); };
+  document.getElementById('plus').onclick  = function(){ ubahJumlah(1); };
+  function ubahJumlah(d){
+    if(state.rolling) return;
+    state.jumlah = Math.min(6, Math.max(1, state.jumlah+d));
+    localStorage.setItem('da_jumlah', state.jumlah);
+    jmlEl.textContent = state.jumlah;
+    renderMeja(); riwayatEl.innerHTML=''; hasil.textContent='';
+    state.nextTargets = null; refreshPrediction();
+  }
+
+  document.querySelectorAll('.dur-btn').forEach(function(b){
+    b.onclick = function(){
+      if(state.rolling) return;
+      document.querySelectorAll('.dur-btn').forEach(function(x){x.classList.remove('aktif');});
+      b.classList.add('aktif');
+      state.durasi = parseInt(b.dataset.d,10);
+      localStorage.setItem('da_durasi', state.durasi);
+    };
+  });
+
+  // Mode prediksi: tekan lama logo untuk memunculkan mata
+  var pressTimer=null, logo=document.getElementById('logo');
+  logo.addEventListener('touchstart', startPress, {passive:true});
+  logo.addEventListener('mousedown', startPress);
+  logo.addEventListener('touchend', cancelPress);
+  logo.addEventListener('mouseup', cancelPress);
+  logo.addEventListener('mouseleave', cancelPress);
+  function startPress(e){
+    pressTimer = setTimeout(function(){
+      eyeBtn.classList.add('show');
+      state.prediksiOn = !state.prediksiOn;
+      eyeBtn.classList.toggle('on', state.prediksiOn);
+      localStorage.setItem('da_eye', state.prediksiOn?'1':'0');
+      refreshPrediction();
+      pressTimer=null;
+    }, 700);
+  }
+  function cancelPress(){ if(pressTimer){ clearTimeout(pressTimer); pressTimer=null; } }
+  eyeBtn.onclick = function(){
+    state.prediksiOn = !state.prediksiOn;
+    eyeBtn.classList.toggle('on', state.prediksiOn);
+    localStorage.setItem('da_eye', state.prediksiOn?'1':'0');
+    refreshPrediction();
+  };
+
+  var muteBtn = document.getElementById('btn-mute');
+  muteBtn.textContent = state.muted ? '🔇' : '🔊';
+  muteBtn.onclick = function(){
+    state.muted = !state.muted;
+    muteBtn.textContent = state.muted ? '🔇' : '🔊';
+    localStorage.setItem('da_mute', state.muted?'1':'0');
+  };
+
+  btnRoll.onclick = function(){ ensureAudio(); roll(); };
+
+  // init
+  jmlEl.textContent = state.jumlah;
+  document.querySelectorAll('.dur-btn').forEach(function(b){
+    b.classList.toggle('aktif', parseInt(b.dataset.d,10)===state.durasi);
+  });
+  eyeBtn.classList.toggle('show', localStorage.getItem('da_eye')!==null);
+  eyeBtn.classList.toggle('on', state.prediksiOn);
+  renderMeja();
+  refreshPrediction();
+})();
+</script>
+</body>
+</html>
