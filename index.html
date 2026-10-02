@@ -231,7 +231,11 @@
     meja.innerHTML='';
     for(var i=0;i<state.jumlah;i++) meja.appendChild(makeDadu());
   }
-  function setMuka(d, n){ d.querySelector('.muka') ? d.replaceChild(makeMuka(n), d.querySelector('.muka')) : d.appendChild(makeMuka(n)); }
+  function setMuka(d, n){
+    var k = d.querySelector('.kubus');
+    var old = k.querySelector('.muka');
+    if(old) k.replaceChild(makeMuka(n), old); else k.appendChild(makeMuka(n));
+  }
 
   // ---------- prediksi ----------
   function genTargets(n){
