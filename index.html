@@ -42,7 +42,7 @@
   .muka.angka { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:8px; }
   .muka.angka .p { border-radius:50%; background:#1a1a1a; align-self:center; justify-self:center; width:12px; height:12px; box-shadow: inset 0 1px 2px rgba(255,255,255,.35), inset 0 -1px 2px rgba(0,0,0,.5); }
   .muka.hewan { display:flex; align-items:center; justify-content:center; }
-  .muka.hewan svg { width:72%; height:72%; }
+  .muka.hewan img { width:72%; height:72%; }
 
   /* mini dadu (ikon jumlah & prediksi) */
   .mini { width:26px; height:26px; border-radius:6px; position:relative;
@@ -52,7 +52,7 @@
   .mini.angka { display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); padding:3px; }
   .mini.angka .p { border-radius:50%; background:#1a1a1a; align-self:center; justify-self:center; width:4.5px; height:4.5px; }
   .mini.hewan { display:flex; align-items:center; justify-content:center; }
-  .mini.hewan svg { width:82%; height:82%; }
+  .mini.hewan img { width:82%; height:82%; }
   .mini.sep { width:2px; height:22px; background:rgba(255,215,0,.4); border-radius:2px; flex:0 0 auto; }
 
   .ikonbar {
@@ -171,60 +171,14 @@
   function thud(){ blip(160,0.09,0.22,'sine'); }
   function gong(){ blip(520,0.35,0.18,'triangle'); }
 
-  // ---------- SVG hewan (siluet, hanya hewan yang berwarna) ----------
-  function hewanSvg(idx, mini){
-    var jenis = HEWAN[idx][0], merah = HEWAN[idx][1]===0;
-    var col = merah ? '#d32f2f' : '#ffffff';
-    var stroke = merah ? 'none' : '#37474f';
-    var eye = merah ? '#ffffff' : '#37474f';
-    var bentuk = '';
-    if(jenis===0){ // GAJAH
-      bentuk =
-        '<ellipse cx="30" cy="27" rx="12" ry="10"/>'+
-        '<circle cx="13.5" cy="21" r="7.5"/>'+
-        '<path d="M11 26 C5.5 28 4 36 8 41 C10.5 44 15 44 15.5 40.5 C16 38 13 38.5 11.5 36 C9.5 32.5 10.5 29.5 13 28.5 Z"/>'+
-        '<circle cx="17.5" cy="18" r="4"/>'+
-        '<rect x="20" y="33" width="5" height="10" rx="2"/>'+
-        '<rect x="28" y="34" width="5" height="10" rx="2"/>'+
-        '<rect x="36" y="33" width="5" height="10" rx="2"/>'+
-        '<path d="M41 23 C45.5 24 46.5 29 44.5 33 C44 31 43.5 28.5 40.5 27.5 Z"/>'+
-        '<circle cx="11.5" cy="19.5" r="1.4" fill="'+eye+'" stroke="none"/>';
-    } else if(jenis===1){ // AYAM
-      bentuk =
-        '<ellipse cx="28" cy="31" rx="10.5" ry="8.5"/>'+
-        '<path d="M36 28 C43.5 24.5 44.5 14.5 39 8.5 C40 15.5 36 19 33 21 C35 15 32 12 29 11 C33 15 32 21 30 25 Z"/>'+
-        '<circle cx="17.5" cy="18" r="5.5"/>'+
-        '<circle cx="20.5" cy="23.5" r="4.5"/>'+
-        '<path d="M12.5 16.5 L6.5 19 L12.5 21.5 Z"/>'+
-        '<circle cx="15.5" cy="12.7" r="2"/>'+
-        '<circle cx="19" cy="11.8" r="2.2"/>'+
-        '<rect x="25" y="38" width="2.2" height="6" rx="1.1"/>'+
-        '<rect x="30" y="38" width="2.2" height="6" rx="1.1"/>'+
-        '<circle cx="16.2" cy="17" r="1.3" fill="'+eye+'" stroke="none"/>';
-    } else { // NAGA
-      bentuk =
-        '<circle cx="10" cy="36" r="5"/>'+
-        '<circle cx="16" cy="39" r="5"/>'+
-        '<circle cx="23" cy="38" r="5"/>'+
-        '<circle cx="28.5" cy="33" r="5"/>'+
-        '<circle cx="31" cy="26" r="5"/>'+
-        '<circle cx="29" cy="19" r="5"/>'+
-        '<circle cx="33.5" cy="13.5" r="5"/>'+
-        '<ellipse cx="40" cy="10" rx="6" ry="4.6"/>'+
-        '<path d="M44.5 7.5 L50 9.5 L44.5 12.5 Z"/>'+
-        '<path d="M37 6.5 L35 1 L39 4 Z"/>'+
-        '<path d="M43 6 L45.5 1 L41 4 Z"/>'+
-        '<rect x="11" y="41" width="3" height="5" rx="1.5"/>'+
-        '<rect x="21" y="41" width="3" height="5" rx="1.5"/>'+
-        '<circle cx="41.5" cy="9" r="1.2" fill="'+eye+'" stroke="none"/>';
-    }
-    var svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.setAttribute('viewBox','0 0 48 48');
-    svg.setAttribute('data-jenis', jenis);
-    svg.setAttribute('data-warna', merah ? 'merah' : 'putih');
-    if(mini) svg.setAttribute('class','mini-svg');
-    svg.innerHTML = '<g fill="'+col+'" stroke="'+stroke+'" stroke-width="1.3" stroke-linejoin="round">'+bentuk+'</g>';
-    return svg;
+  // ---------- gambar hewan (aset PNG, hanya hewan berwarna) ----------
+  function hewanImg(idx){
+    var im = document.createElement('img');
+    im.src = 'hewan_' + idx + '.png';
+    im.alt = '';
+    im.setAttribute('data-jenis', HEWAN[idx][0]);
+    im.setAttribute('data-warna', HEWAN[idx][1]===0 ? 'merah' : 'putih');
+    return im;
   }
 
   // ---------- pembangun wajah ----------
@@ -239,7 +193,7 @@
   }
   function makeMukaHewan(idx){
     var m = document.createElement('div'); m.className='muka hewan';
-    m.appendChild(hewanSvg(idx));
+    m.appendChild(hewanImg(idx));
     return m;
   }
   function makeDadu(tipe, cur){
@@ -312,7 +266,7 @@
   }
   function miniHewan(idx){
     var m = document.createElement('div'); m.className='mini hewan';
-    m.appendChild(hewanSvg(idx, true));
+    m.appendChild(hewanImg(idx));
     return m;
   }
   function refreshPrediction(){
