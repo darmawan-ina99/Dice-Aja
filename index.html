@@ -319,30 +319,49 @@
     }
 
     var dice = Array.prototype.slice.call(document.querySelectorAll('.dadu'));
-    var n = dice.length;                  // jumlah angka + 1 hewan
     var dur = state.durasi;
-    var stagger = Math.min(900, dur*0.55) / n;
-    var base = dur - stagger*(n-1);
+
+    // Aturan pendaratan ala The Dice v6.3:
+    // berhenti mulai angka terkecil dengan urutan tetap 2 -> 3 -> 4 -> 5 -> 6 -> 1.
+    // Angka kembar mendarat serempak. Waktu: rank 0 mendarat di dur*0.875,
+    // tiap urutan berikut +dur*0.0625 (saat dur 4 dtk: 3,5 / 3,75 / 4,0 / 4,25 / 4,5 / 4,75).
+    var RANK = { 2:0, 3:1, 4:2, 5:3, 6:4, 1:5 };
+    var base = Math.round(dur*0.875);
+    var step = Math.max(100, Math.round(dur*0.0625));
 
     dice.forEach(function(d){ d.classList.add('rolling'); });
 
+    // siklus selang-seling, tempo 4 wajah/detik, mendarat alami tanpa snap
+    var FLIP = 250;
+    dice.forEach(function(d,i){
+      d.dataset.cur = 1+Math.floor(Math.random()*6);
+      d.dataset.dir = (i%2===0) ? '1' : '-1';
+    });
     var flipTimer = setInterval(function(){
       dice.forEach(function(d){
         if(!d.classList.contains('rolling')) return;
-        if(d.dataset.tipe==='hewan') setMuka(d, Math.floor(Math.random()*6));
-        else setMuka(d, 1+Math.floor(Math.random()*6));
+        var c = parseInt(d.dataset.cur,10);
+        var dir = parseInt(d.dataset.dir,10);
+        if(d.dataset.tipe==='hewan') setMuka(d, c%6);
+        else setMuka(d, c);
+        c = ((c-1+dir+6)%6)+1;
+        d.dataset.cur = c;
       });
       tick();
-    }, 130);
+    }, FLIP);
 
+    // jadwal pendaratan: per-NILAI (bukan per-posisi), dadu hewan selalu penutup
+    var lastStop = 0;
     dice.forEach(function(d,i){
+      var t = (d.dataset.tipe==='hewan') ? (base + 6*step) : (base + RANK[angka[i]]*step);
+      if(t > lastStop) lastStop = t;
       setTimeout(function(){
         d.classList.remove('rolling');
         d.classList.add('stop');
         if(d.dataset.tipe==='hewan'){ setMuka(d, hewanIdx); gong(); }
         else { setMuka(d, angka[i]); thud(); }
         setTimeout(function(){ d.classList.remove('stop'); }, 400);
-      }, base + stagger*i);
+      }, t);
     });
 
     setTimeout(function(){
@@ -365,7 +384,7 @@
 
       state.rolling = false;
       btnRoll.disabled = false;
-    }, dur + 500);
+    }, lastStop + 450);
   }
 
   // ---------- kontrol ----------
